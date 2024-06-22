@@ -1,0 +1,32 @@
+import cv2
+import numpy as np
+
+# Load the image
+image_path = r"C:\Users\poornima\Downloads\im.jpeg"
+frame = cv2.imread(image_path)
+
+# Check if the image is loaded correctly
+if frame is None:
+    print("Error: Could not load the image.")
+else:
+    # Convert to grayscale for edge detection
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # Calculation of Sobelx
+    sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=5)
+    
+    # Calculation of Sobely
+    sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=5)
+    
+    # Calculation of Laplacian
+    laplacian = cv2.Laplacian(gray, cv2.CV_64F)
+    
+    # Display the results
+    cv2.imshow('Original Image', frame)
+    cv2.imshow('Sobel X', sobelx)
+    cv2.imshow('Sobel Y', sobely)
+    cv2.imshow('Laplacian', laplacian)
+    
+    # Wait for a key press and close the windows
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
