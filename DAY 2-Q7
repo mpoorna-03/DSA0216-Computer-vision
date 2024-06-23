@@ -1,0 +1,55 @@
+import cv2
+import numpy as np
+
+# Load the main image
+img = cv2.imread(r'C:\Users\poornima\Downloads\im.jpeg')
+
+# Load the logo image (watermark)
+logo = cv2.imread(r'C:\Users\poornima\Downloads\im.jpeg')
+
+# Get dimensions of the main image and the logo
+h_img, w_img, _ = img.shape
+h_logo, w_logo, _ = logo.shape
+
+# Resize the logo if it's larger than the main image
+scale_factor = 0.2  # Resize the logo to 20% of the main image width
+new_w_logo = int(w_img * scale_factor)
+new_h_logo = int(h_logo * new_w_logo / w_logo)
+logo = cv2.resize(logo, (new_w_logo, new_h_logo), interpolation=cv2.INTER_AREA)
+
+# Get new dimensions of the resized logo
+h_logo, w_logo, _ = logo.shape
+
+# Choose the position to place the watermark (bottom-right corner)
+x_offset = w_img - w_logo - 10  # 10 pixels from the right
+y_offset = h_img - h_logo - 10  # 10 pixels from the bottom
+
+# Create a region of interest (ROI) in the main image
+roi = img[y_offset:y_offset + h_logo, x_offset:x_offset + w_logo]
+
+# Convert the logo to grayscale and create a mask
+gray_logo = cv2.cvtColor(logo, cv2.COLOR_BGR2GRAY)
+_, mask = cv2.threshold(gray_logo, 1, 255, cv2.THRESH_BINARY)
+
+# Invert the mask
+mask_inv = cv2.bitwise_not(mask)
+
+# Black-out the area of the logo in the ROI
+img_bg = cv2.bitwise_and(roi, roi, mask=mask_inv)
+
+# Take only the region of the logo from the logo image
+logo_fg = cv2.bitwise_and(logo, logo, mask=mask)
+
+# Add the logo_fg to the img_bg
+dst = cv2.add(img_bg, logo_fg)
+
+# Place the combined image back into the original image
+img[y_offset:y_offset + h_logo, x_offset:x_offset + w_logo] = dst
+
+# Save the result
+cv2.imwrite(r'C:\Users\poornima\Downloads\watermarked_image.jpg', img)
+
+# Display the result
+cv2.imshow('Watermarked Image', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
