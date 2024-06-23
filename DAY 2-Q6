@@ -1,0 +1,30 @@
+import numpy as np
+
+# Original dataset
+data = [3, 5, 8, 12, 7, 10, 15, 20, 18, 22, 25, 28, 30]
+
+# Median Filtering
+def median_filter(data, window_size):
+    result = np.copy(data)
+    half_window = window_size // 2
+    for i in range(half_window, len(data) - half_window):
+        window = data[i - half_window:i + half_window + 1]
+        result[i] = np.median(window)
+    return result
+
+# Box Filtering
+def box_filter(data, window_size):
+    result = np.copy(data)
+    half_window = window_size // 2
+    for i in range(half_window, len(data) - half_window):
+        window = data[i - half_window:i + half_window + 1]
+        result[i] = np.mean(window)
+    return result
+
+# Applying filters
+median_filtered_data = median_filter(data, 3)
+box_filtered_data = box_filter(data, 3)
+
+print("Original data:", data)
+print("Median filtered data:", median_filtered_data)
+print("Box filtered data:", box_filtered_data)
