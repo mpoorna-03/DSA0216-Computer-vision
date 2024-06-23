@@ -1,0 +1,42 @@
+import cv2
+import numpy as np
+
+def prewitt_edge_detection(image):
+    # Prewitt kernels
+    kernel_x = np.array([[-1, 0, 1], 
+                         [-1, 0, 1], 
+                         [-1, 0, 1]], dtype=np.float32)
+    
+    kernel_y = np.array([[-1, -1, -1], 
+                         [0, 0, 0], 
+                         [1, 1, 1]], dtype=np.float32)
+
+    # Convolve the image with the kernels
+    grad_x = cv2.filter2D(image, cv2.CV_64F, kernel_x)
+    grad_y = cv2.filter2D(image, cv2.CV_64F, kernel_y)
+
+    # Calculate the magnitude
+    magnitude = np.sqrt(grad_x**2 + grad_y**2)
+
+    # Normalize to 8-bit
+    magnitude = np.uint8(255 * magnitude / np.max(magnitude))
+
+    return magnitude
+
+# Load the image
+image = cv2.imread(r'C:\Users\poornima\Downloads\im.jpeg')
+
+# Convert to grayscale
+gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Apply Prewitt Edge Detection
+edges = prewitt_edge_detection(gray_image)
+
+# Display the result
+cv2.imshow('Original Image', image)
+cv2.imshow('Prewitt Edge Detection', edges)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+# Save the result if needed
+cv2.imwrite('prewitt_edges.jpg', edges)
