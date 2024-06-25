@@ -1,0 +1,71 @@
+import cv2
+import numpy as np
+
+def canny_edge_detection(image, low_threshold, high_threshold):
+    """
+    Canny edge detection algorithm for image segmentation.
+
+    Args:
+        image: Input image
+        low_threshold: Low threshold value for edge detection
+        high_threshold: High threshold value for edge detection
+
+    Returns:
+        Edge map image
+    """
+    # Convert image to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Apply Gaussian blur to reduce noise
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    # Apply Canny edge detection
+    edges = cv2.Canny(blurred, low_threshold, high_threshold)
+
+    return edges
+
+def sobel_edge_detection(image, dx, dy, ksize):
+    """
+    Sobel edge detection algorithm for image segmentation.
+
+    Args:
+        image: Input image
+        dx: Derivative in x-direction
+        dy: Derivative in y-direction
+        ksize: Size of the Sobel kernel
+
+    Returns:
+        Edge map image
+    """
+    # Convert image to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Apply Sobel edge detection
+    grad_x = cv2.Sobel(gray, cv2.CV_8U, dx, 0, ksize)
+    grad_y = cv2.Sobel(gray, cv2.CV_8U, 0, dy, ksize)
+
+    # Combine gradients in x and y directions
+    edges = cv2.addWeighted(grad_x, 0.5, grad_y, 0.5, 0)
+
+    return edges
+
+# Load image
+image = cv2.imread(r'C:\Users\poornima\Downloads\im.jpeg')
+
+# Canny edge detection
+low_threshold = 50
+high_threshold = 150
+edges_canny = canny_edge_detection(image, low_threshold, high_threshold)
+
+# Sobel edge detection
+dx = 1
+dy = 1
+ksize = 3
+edges_sobel = sobel_edge_detection(image, dx, dy, ksize)
+
+# Display results
+cv2.imshow('Original Image', image)
+cv2.imshow('Canny Edge Detection', edges_canny)
+cv2.imshow('Sobel Edge Detection', edges_sobel)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
