@@ -1,0 +1,49 @@
+import cv2
+import numpy as np
+
+# Load the sequence of input images
+image_sequence = []
+for i in range(10):  # assume 10 images in the sequence
+    image_path = f"C:\\Users\\poornima\\Downloads\\image_{i}.jpg"
+    image = cv2.imread(image_path)
+    if image is None:
+        print(f"Error: Failed to load image {image_path}")
+        continue
+    image_sequence.append(image)
+
+# Check if any images were loaded
+if not image_sequence:
+    print("Error: No images loaded. Exiting.")
+    exit()
+
+# Convert the image sequence to grayscale
+gray_sequence = []
+for image in image_sequence:
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray_sequence.append(gray)
+
+# Estimate optical flow using the Lucas-Kanade method
+flow_sequence = []
+prev_gray = gray_sequence[0]
+for gray in gray_sequence[1:]:
+    flow = cv2.calcOpticalFlowFarneback(prev_gray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+    flow_sequence.append(flow)
+    prev_gray = gray
+
+# Create an animated GIF using the optical flow sequence
+animated_gif = []
+for flow in flow_sequence:
+    flow_image = np.zeros((flow.shape[0], flow.shape[1], 3), dtype=np.uint8)
+    for y in range(flow.shape[0]):
+        for x in range(flow.shape[1]):
+            dx, dy = flow[y, x]
+            flow_image[y, x] = (int(dx), int(dy), 0)
+    animated_gif.append(flow_image)
+
+# Save the animated GIF
+cv2.imwrite("animated_gif.gif", animated_gif)
+
+# Display the animated GIF
+cv2.imshow("Animated GIF", animated_gif[0])
+cv2.waitKey(0)
+cv2.destroyAllWindows()
