@@ -1,0 +1,66 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+import time
+
+def compute_depth_map(left_image, right_image, method='BM'):
+    if left_image is None or right_image is None:
+        raise ValueError("One or both images are not loaded correctly.")
+    
+    # Initialize the stereo matcher
+    if method == 'BM':
+        stereo = cv2.StereoBM_create(numDisparities=16*5, blockSize=15)
+    elif method == 'SGBM':
+        min_disp = 0
+        num_disp = 16 * 5
+        block_size = 5
+        stereo = cv2.StereoSGBM_create(minDisparity=min_disp,
+                                       numDisparities=num_disp,
+                                       blockSize=block_size,
+                                       P1=8 * 3 * block_size ** 2,
+                                       P2=32 * 3 * block_size ** 2,
+                                       disp12MaxDiff=1,
+                                       uniquenessRatio=10,
+                                       speckleWindowSize=100,
+                                       speckleRange=32)
+    else:
+        raise ValueError("Invalid method specified. Use 'BM' or 'SGBM'.")
+    
+    # Compute the disparity map
+    start_time = time.time()
+    disparity = stereo.compute(left_image, right_image).astype(np.float32) / 16.0
+    end_time = time.time()
+    
+    # Normalize the disparity map for visualization
+    disparity_normalized = cv2.normalize(disparity, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+    disparity_normalized = np.uint8(disparity_normalized)
+    
+    print(f"Method: {method}, Computation Time: {end_time - start_time:.2f} seconds")
+    
+    return disparity_normalized
+
+def plot_depth_map(disparity, title):
+    plt.figure(figsize=(10, 5))
+    plt.imshow(disparity, cmap='gray')
+    plt.colorbar()
+    plt.title(title)
+    plt.show()
+
+# Load stereo images
+left_image_path = r"C:\Users\poornima\Downloads\im.jpeg"
+right_image_path = r"C:\Users\poornima\Downloads\im.jpeg"  # Use the same image for simplicity; replace with a stereo pair
+
+# Read images
+left_image = cv2.imread(left_image_path, cv2.IMREAD_GRAYSCALE)
+right_image = cv2.imread(right_image_path, cv2.IMREAD_GRAYSCALE)
+
+# Check if images are correctly loaded
+if left_image is None or right_image is None:
+    raise FileNotFoundError("One or both images could not be loaded.")
+
+# Compute and plot depth maps using BM and SGBM methods
+disparity_bm = compute_depth_map(left_image, right_image, method='BM')
+plot_depth_map(disparity_bm, "Depth Map - Block Matching (BM)")
+
+disparity_sgbm = compute_depth_map(left_image, right_image, method='SGBM')
+plot_depth_map(disparity_sgbm, "Depth Map - Semi-Global Block Matching (SGBM)")
