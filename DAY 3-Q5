@@ -1,0 +1,35 @@
+import cv2
+import numpy as np
+
+# Load the image
+image = cv2.imread(r'C:\Users\poornima\Downloads\im.jpeg')
+
+# Convert the image to grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Load the template image
+template_image = cv2.imread(r'C:\Users\poornima\Downloads\template.jpeg', cv2.IMREAD_GRAYSCALE)
+
+# Check if the template image is loaded successfully
+if template_image is None:
+    print("Failed to load template image. Please check the file path.")
+else:
+    # Resize the template image to be smaller than the input image
+    template_image = cv2.resize(template_image, (int(template_image.shape[1] * 0.5), int(template_image.shape[0] * 0.5)))
+
+    # Define the template matching parameters
+    method = cv2.TM_CCOEFF_NORMED
+    result = cv2.matchTemplate(gray, template_image, method)
+
+    # Find the maximum correlation value
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+
+    # Draw a rectangle around the matched region
+    matched_image = cv2.rectangle(image, max_loc, (max_loc[0] + template_image.shape[1], max_loc[1] + template_image.shape[0]), (0, 255, 0), 2)
+
+    # Display the results
+    cv2.imshow('Original Image', image)
+    cv2.imshow('Template Image', template_image)
+    cv2.imshow('Matched Image', matched_image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
