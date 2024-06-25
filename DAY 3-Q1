@@ -1,0 +1,98 @@
+
+import cv2
+import numpy as np
+
+def region_growing(image, seed_point, threshold):
+    """
+    Region growing algorithm for image segmentation.
+
+    Args:
+        image: Input image
+        seed_point: Seed point for region growing
+        threshold: Threshold value for pixel intensity difference
+
+    Returns:
+        Mask image where pixels with similar intensity values are marked as 255
+    """
+    rows, cols = image.shape[:2]
+    mask = np.zeros((rows, cols), dtype=np.uint8)
+    mask[seed_point[1], seed_point[0]] = 255
+
+    current_pixel = seed_point
+    while True:
+        neighbors = [(current_pixel[0]-1, current_pixel[1]), (current_pixel[0]+1, current_pixel[1]),
+                     (current_pixel[0], current_pixel[1]-1), (current_pixel[0], current_pixel[1]+1)]
+        for neighbor in neighbors:
+            if (0 <= neighbor[0] < cols) and (0 <= neighbor[1] < rows):
+                if mask[neighbor[1], neighbor[0]] == 0:
+                    intensity_diff = np.abs(image[current_pixel[1], current_pixel[0]].astype(np.int16) - image[neighbor[1], neighbor[0]].astype(np.int16))
+                    if intensity_diff < threshold:
+                        mask[neighbor[1], neighbor[0]] = 255
+                        current_pixel = neighbor
+                        break
+        else:
+            break
+
+    return mask
+
+def split_and_merge(image, threshold):
+    """
+    Split and merge algorithm for image segmentation.
+
+    Args:
+        image: Input image
+        threshold: Threshold value for pixel intensity difference
+
+    Returns:
+        Mask image where pixels with similar intensity values are marked as 255
+    """
+    rows, cols = image.shape[:2]
+    mask = np.zeros((rows, cols), dtype=np.uint8)
+
+    # Initialize regions
+    regions = []
+    for i in range(rows):
+        for j in range(cols):
+            regions.append([(j, i)])
+
+    # Split phase
+    while True:
+        merged = False
+        for i in range(len(regions)):
+            for j in range(i+1, len(regions)):
+                region1 = regions[i]
+                region2 = regions[j]
+                if np.any([np.abs(image[y, x].astype(np.int16) - image[y2, x2].astype(np.int16)) < threshold for (x, y) in region1 for (x2, y2) in region2]):
+                    regions[i] = region1 + region2
+                    regions.pop(j)
+                    merged = True
+                    break
+            if merged:
+                break
+        if not merged:
+            break
+
+    # Merge phase
+    for region in regions:
+        for (x, y) in region:
+            mask[y, x] = 255
+
+    return mask
+
+# Load image
+image = cv2.imread(r'C:\Users\poornima\Downloads\im.jpeg', cv2.IMREAD_GRAYSCALE)
+
+# Region growing segmentation
+seed_point = (100, 100)  # Choose a seed point
+threshold = 10  # Choose a threshold value
+mask_rg = region_growing(image, seed_point, threshold)
+
+# Split and merge segmentation
+threshold = 20  # Choose a threshold value
+mask_sm = split_and_merge(image, threshold)
+
+# Display results
+cv2.imshow('Region Growing', mask_rg)
+cv2.imshow('Split and Merge', mask_sm)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
