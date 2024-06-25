@@ -1,0 +1,63 @@
+import cv2
+import numpy as np
+
+# Define a function to select the bounding box
+def select_roi(event, x, y, flags, param):
+    global roi, selection_done
+    if event == cv2.EVENT_LBUTTONDOWN:
+        roi = [(x, y)]
+    elif event == cv2.EVENT_LBUTTONUP:
+        roi.append((x, y))
+        selection_done = True
+
+# Load the video
+video_path = r"C:\Users\poornima\Downloads\im.jpeg"
+cap = cv2.VideoCapture(video_path)
+
+# Read the first frame
+ret, frame = cap.read()
+if not ret:
+    print("Failed to read the video")
+    cap.release()
+    exit()
+
+# Set up the initial bounding box
+roi = []
+selection_done = False
+cv2.namedWindow("Select ROI")
+cv2.setMouseCallback("Select ROI", select_roi)
+
+# Wait for the user to draw the bounding box
+while not selection_done:
+    cv2.imshow("Select ROI", frame)
+    if cv2.waitKey(1) == 27:  # Escape key to cancel
+        cap.release()
+        cv2.destroyAllWindows()
+        exit()
+
+cv2.destroyWindow("Select ROI")
+bbox = cv2.boundingRect(np.array([roi]))
+
+# Initialize the MedianFlow tracker
+tracker = cv2.TrackerMedianFlow_create()
+tracker.init(frame, bbox)
+
+# Start tracking
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    success, bbox = tracker.update(frame)
+    if success:
+        x, y, w, h = map(int, bbox)
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    else:
+        cv2.putText(frame, "Tracking failure detected", (100, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+
+    cv2.imshow("Tracking", frame)
+    if cv2.waitKey(1) & 0xFF == 27:  # Escape key to stop
+        break
+
+cap.release()
+cv2.destroyAllWindows()
