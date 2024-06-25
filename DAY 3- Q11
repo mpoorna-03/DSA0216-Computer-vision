@@ -1,0 +1,64 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+import os
+
+def feature_matching(image1_path, image2_path, use_sift=True):
+    # Load the images
+    image1 = cv2.imread(image1_path, cv2.IMREAD_GRAYSCALE)
+    image2 = cv2.imread(image2_path, cv2.IMREAD_GRAYSCALE)
+
+    # Check if images are loaded
+    if image1 is None:
+        raise FileNotFoundError(f"Image at path {image1_path} could not be loaded.")
+    if image2 is None:
+        raise FileNotFoundError(f"Image at path {image2_path} could not be loaded.")
+
+    if use_sift:
+        # Initialize SIFT detector
+        detector = cv2.SIFT_create()
+        norm_type = cv2.NORM_L2
+    else:
+        # Initialize ORB detector
+        detector = cv2.ORB_create()
+        norm_type = cv2.NORM_HAMMING
+
+    # Detect keypoints and compute descriptors
+    keypoints1, descriptors1 = detector.detectAndCompute(image1, None)
+    keypoints2, descriptors2 = detector.detectAndCompute(image2, None)
+
+    # Check if descriptors are detected
+    if descriptors1 is None or descriptors2 is None:
+        print("No descriptors found in one or both images.")
+        return
+
+    # Create a Brute Force Matcher object
+    bf = cv2.BFMatcher(norm_type, crossCheck=True)
+
+    # Match descriptors
+    matches = bf.match(descriptors1, descriptors2)
+
+    # Sort them in the order of their distances
+    matches = sorted(matches, key=lambda x: x.distance)
+
+    # Draw matches
+    image_matches = cv2.drawMatches(image1, keypoints1, image2, keypoints2, matches[:50], None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+
+    plt.figure(figsize=(12, 6))
+    plt.imshow(image_matches)
+    title = 'SIFT Feature Matching' if use_sift else 'ORB Feature Matching'
+    plt.title(title)
+    plt.show()
+
+# Paths to the images
+image1_path = r"C:\Users\poornima\Downloads\im.jpeg"
+image2_path = r"C:\Users\poornima\Pictures\Screenshots\Screenshot (43).png"
+
+# Check if files exist before proceeding
+if not os.path.exists(image1_path):
+    print(f"File not found: {image1_path}")
+elif not os.path.exists(image2_path):
+    print(f"File not found: {image2_path}")
+else:
+    # Perform feature matching
+    feature_matching(image1_path, image2_path, use_sift=True)  # Set use_sift=False to use ORB
