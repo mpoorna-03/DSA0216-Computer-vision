@@ -1,0 +1,47 @@
+import cv2
+import numpy as np
+
+# Load the left and right stereo images
+left_image = cv2.imread(r'C:\Users\poornima\Downloads\left_image.jpg')
+right_image = cv2.imread(r'C:\Users\poornima\Downloads\right_image.jpg')
+
+if left_image is None:
+    print("Error: Failed to load left stereo image.")
+    exit()
+
+if right_image is None:
+    print("Error: Failed to load right stereo image.")
+    exit()
+
+# Convert the images to grayscale
+left_gray = cv2.cvtColor(left_image, cv2.COLOR_BGR2GRAY)
+right_gray = cv2.cvtColor(right_image, cv2.COLOR_BGR2GRAY)
+
+# Create a StereoSGBM object with default parameters
+stereo = cv2.StereoSGBM_create(
+    minDisparity=0,
+    numDisparities=16,
+    blockSize=15,
+    uniquenessRatio=10,
+    speckleWindowSize=100,
+    speckleRange=32,
+    disp12MaxDiff=1,
+    P1=8 * 3 * 3,
+    P2=32 * 3 * 3
+)
+
+# Compute the disparity map using SGM
+disparity = stereo.compute(left_gray, right_gray)
+
+# Normalize the disparity map to the range [0, 255]
+disparity_normalized = cv2.normalize(disparity, None, 0, 255, cv2.NORM_MINMAX)
+
+# Convert the disparity map to a 3-channel image for visualization
+disparity_image = cv2.applyColorMap(disparity_normalized.astype(np.uint8), cv2.COLORMAP_JET)
+
+# Display the results
+cv2.imshow('Left Image', left_image)
+cv2.imshow('Right Image', right_image)
+cv2.imshow('Disparity Map', disparity_image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
