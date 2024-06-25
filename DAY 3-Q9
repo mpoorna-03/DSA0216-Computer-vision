@@ -1,0 +1,28 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+
+# Load the image
+image_path = r"C:\Users\poornima\Downloads\im.jpeg"
+image = cv2.imread(image_path)
+
+# Convert the image to the Lab color space
+lab_image = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
+
+# Define the parameters for mean shift segmentation
+spatial_radius = 10  # Spatial radius
+color_radius = 30    # Color radius
+max_pyramid_level = 1  # Maximum level of the pyramid for the segmentation
+
+# Apply Mean Shift Segmentation
+shifted_image = cv2.pyrMeanShiftFiltering(lab_image, spatial_radius, color_radius, maxLevel=max_pyramid_level)
+
+# Convert the segmented image back to RGB
+segmented_image = cv2.cvtColor(shifted_image, cv2.COLOR_Lab2BGR)
+
+# Display the original and segmented images
+plt.figure(figsize=(12, 6))
+plt.subplot(121), plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)), plt.title('Original Image')
+plt.subplot(122), plt.imshow(cv2.cvtColor(segmented_image, cv2.COLOR_BGR2RGB)), plt.title('Mean Shift Segmented Image')
+plt.tight_layout()
+plt.show()
