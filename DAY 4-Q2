@@ -1,0 +1,76 @@
+import cv2
+import numpy as np
+import os
+
+# COCO class labels (21 classes including 'background' for MobileNet-SSD)
+labels = ["background", "aeroplane", "bicycle", "bird", "boat",
+          "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
+          "dog", "horse", "motorbike", "person", "pottedplant",
+          "sheep", "sofa", "train", "tvmonitor"]
+
+# Paths to model files
+prototxt_path = r"C:\Users\poornima\Downloads\deploy.prototxt"
+model_path = r"C:\Users\poornima\Downloads\mobilenet_iter_73000.caffemodel"
+
+# Debug information
+print(f"Checking prototxt file at: {prototxt_path}")
+print(f"Checking model file at: {model_path}")
+
+# Validate paths
+if not os.path.isfile(prototxt_path):
+    raise FileNotFoundError(f"Prototxt file not found at {prototxt_path}")
+if not os.path.isfile(model_path):
+    raise FileNotFoundError(f"Caffe model file not found at {model_path}")
+
+# Load the model
+try:
+    net = cv2.dnn.readNetFromCaffe(prototxt_path, model_path)
+    print("Model loaded successfully!")
+except cv2.error as e:
+    print(f"Error loading the model: {e}")
+    exit()
+
+# Function to detect objects
+def detect_objects(image):
+    # Convert image to blob
+    blob = cv2.dnn.blobFromImage(image, scalefactor=0.007843, size=(300, 300), mean=(127.5, 127.5, 127.5), swapRB=False)
+    net.setInput(blob)
+    detections = net.forward()
+    return detections
+
+# Draw boxes on the image
+def draw_boxes(image, detections, threshold=0.2):
+    height, width = image.shape[:2]
+    for i in range(detections.shape[2]):
+        confidence = detections[0, 0, i, 2]
+        if confidence > threshold:
+            idx = int(detections[0, 0, i, 1])
+            box = detections[0, 0, i, 3:7] * np.array([width, height, width, height])
+            (startX, startY, endX, endY) = box.astype("int")
+            label = f"{labels[idx]}: {confidence:.2f}"
+            cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
+            y = startY - 10 if startY - 10 > 10 else startY + 10
+            cv2.putText(image, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 2)
+    return image
+
+# Load an image
+image_path = r"C:/Users/poornima/Downloads/im.jpeg"  # Replace with your image path
+print(f"Checking image file at: {image_path}")
+
+if not os.path.isfile(image_path):
+    raise FileNotFoundError(f"Image file not found at {image_path}")
+
+image = cv2.imread(image_path)
+print("Image loaded successfully!")
+
+# Detect objects in the image
+detections = detect_objects(image)
+print("Detections made successfully!")
+
+# Draw bounding boxes on the image
+output_image = draw_boxes(image, detections)
+
+# Display the output
+cv2.imshow('Object Detection', output_image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
