@@ -1,0 +1,36 @@
+import cv2
+import numpy as np
+import math
+
+# Load an image
+image_path = r"C:\Users\poornima\Downloads\im.jpeg"
+image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+if image is None:
+    raise FileNotFoundError("Image not found. Please check the file path.")
+
+# Compute gradients using Sobel operators
+grad_x = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
+grad_y = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
+
+# Compute magnitude and direction
+grad_magnitude = np.sqrt(grad_x**2 + grad_y**2)
+grad_direction = np.arctan2(grad_y, grad_x)
+
+# Normalize magnitude to 0-255
+grad_magnitude_normalized = cv2.normalize(grad_magnitude, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+
+# Convert direction to degrees for better visualization
+grad_direction_degrees = np.degrees(grad_direction)
+grad_direction_degrees = (grad_direction_degrees + 180) % 180  # Ensure angles are within 0-180 degrees
+grad_direction_normalized = grad_direction_degrees.astype(np.uint8)
+
+# Save the results as images
+output_path_magnitude = r"C:\Users\poornima\Downloads\grad_magnitude.png"
+output_path_direction = r"C:\Users\poornima\Downloads\grad_direction.png"
+
+cv2.imwrite(output_path_magnitude, grad_magnitude_normalized)
+cv2.imwrite(output_path_direction, grad_direction_normalized)
+
+print(f"Gradient Magnitude saved as: {output_path_magnitude}")
+print(f"Gradient Direction saved as: {output_path_direction}")
