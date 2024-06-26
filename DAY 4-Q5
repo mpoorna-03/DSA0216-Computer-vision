@@ -1,0 +1,16 @@
+import cv2
+
+# Load the image
+image_path = r"C:\Users\poornima\Downloads\im.jpeg"  # Replace with your image path
+image = cv2.imread(image_path)
+if image is None:
+    raise FileNotFoundError(f"Image file not found at {image_path}")
+
+# Apply Gaussian blur
+blurred_image = cv2.GaussianBlur(image, (5, 5), 0)  # Kernel size (5, 5) and sigma (0) can be adjusted
+
+# Save the blurred image
+output_path = r"C:\Users\poornima\Downloads\blurred_im.jpeg"
+cv2.imwrite(output_path, blurred_image)
+
+print(f"Blurred image saved as: {output_path}")
