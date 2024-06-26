@@ -1,0 +1,56 @@
+import cv2
+import numpy as np
+
+# Load the video file
+cap = cv2.VideoCapture("C:\\Users\\poornima\\Downloads\\VIDEO .CV.mp4")
+
+# Check if the video file is opened successfully
+if not cap.isOpened():
+    print("Error opening video file")
+    exit()
+
+# Read the first frame
+ret, prev_frame = cap.read()
+if not ret:
+    print("Error reading first frame")
+    exit()
+
+# Convert to grayscale
+prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
+
+while True:
+    # Read the next frame
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # Convert to grayscale
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Calculate optical flow
+    flow = cv2.calcOpticalFlowFarneback(prev_gray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+
+    # Create an RGB image to visualize the flow
+    flow_rgb = frame.copy()
+
+    # Draw the motion vectors
+    step = 15  # step size to sample flow vectors
+    for y in range(0, gray.shape[0], step):
+        for x in range(0, gray.shape[1], step):
+            fx, fy = flow[y, x]
+            cv2.line(flow_rgb, (x, y), (int(x + fx), int(y + fy)), (0, 255, 0), 1)
+            cv2.circle(flow_rgb, (x, y), 1, (0, 0, 255), -1)
+
+    # Display the output
+    cv2.imshow("Optical Flow", flow_rgb)
+
+    # Update the previous frame
+    prev_gray = gray
+
+    # Exit on key press
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Release resources
+cap.release()
+cv2.destroyAllWindows()
