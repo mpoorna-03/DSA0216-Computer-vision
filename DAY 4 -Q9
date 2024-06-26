@@ -1,0 +1,68 @@
+import cv2
+import numpy as np
+
+# Load image
+image_path = r"C:\Users\poornima\Downloads\im.jpeg"
+image = cv2.imread(image_path)
+
+if image is None:
+    raise FileNotFoundError("Image not found. Please check the file path.")
+
+# Convert image to grayscale
+gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Normalize grayscale image to range [0, 1]
+gray_image = gray_image / 255.0
+
+# Parameters for MRF texture segmentation
+num_iter = 100  # Number of iterations for MRF inference
+neighborhood = 4  # Neighborhood size (4 or 8)
+beta = 1.0  # Smoothing parameter
+
+# Initialize segmentation mask (random initialization)
+segmentation = np.random.randint(0, 2, size=gray_image.shape, dtype=np.int32)
+
+# Define the energy function (Potts model)
+def energy_function(image, segmentation, beta):
+    smoothness_cost = np.sum(beta * (segmentation - np.roll(segmentation, 1, axis=0))**2)
+    data_cost = np.sum((1 - 2 * image) * segmentation)
+    return smoothness_cost + data_cost
+
+# Perform MRF inference using Iterated Conditional Modes (ICM)
+for _ in range(num_iter):
+    for i in range(1, gray_image.shape[0] - 1):
+        for j in range(1, gray_image.shape[1] - 1):
+            current_label = segmentation[i, j]
+            if neighborhood == 4:
+                neighbor_labels = [
+                    segmentation[i - 1, j],
+                    segmentation[i + 1, j],
+                    segmentation[i, j - 1],
+                    segmentation[i, j + 1]
+                ]
+            else:  # Neighborhood of 8
+                neighbor_labels = [
+                    segmentation[i - 1, j - 1],
+                    segmentation[i - 1, j],
+                    segmentation[i - 1, j + 1],
+                    segmentation[i, j - 1],
+                    segmentation[i, j + 1],
+                    segmentation[i + 1, j - 1],
+                    segmentation[i + 1, j],
+                    segmentation[i + 1, j + 1]
+                ]
+            energies = []
+            for label in [0, 1]:
+                segmentation[i, j] = label
+                energy = energy_function(gray_image, segmentation, beta)
+                energies.append(energy)
+            segmentation[i, j] = np.argmin(energies)
+
+# Convert segmentation mask to uint8 for visualization
+segmentation = (segmentation * 255).astype(np.uint8)
+
+# Display the results
+cv2.imshow('Original Image', image)
+cv2.imshow('Segmentation Mask', segmentation)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
