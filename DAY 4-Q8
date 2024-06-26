@@ -1,0 +1,62 @@
+import cv2
+import numpy as np
+from skimage import feature
+from sklearn.svm import SVC
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+# Function to compute Local Binary Pattern (LBP) histogram
+def compute_lbp_histogram(image, num_points=24, radius=8):
+    lbp = feature.local_binary_pattern(image, num_points, radius, method="uniform")
+    hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, num_points + 3), range=(0, num_points + 2))
+    hist = hist.astype("float")
+    hist /= (hist.sum() + 1e-7)  # Normalize histogram
+    return hist
+
+# Load and preprocess the image
+image_path = r"C:\Users\poornima\Downloads\im.jpeg"
+image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+if image is None:
+    raise FileNotFoundError("Image not found. Please check the file path.")
+
+# Resize image to a fixed size for consistent feature extraction
+image = cv2.resize(image, (300, 300))
+
+# Compute LBP features for the image
+lbp_hist = compute_lbp_histogram(image)
+
+# Print the LBP histogram (for demonstration)
+print("LBP Histogram:")
+print(lbp_hist)
+
+# Example: Use LBP features for texture classification (dummy example)
+# Assuming you have labeled data for training a classifier
+# Replace this with your actual dataset and classifier training code
+# Dummy labels and data for demonstration purposes
+labels = ["texture1", "texture2", "texture3"]  # Replace with actual class labels
+data = np.random.rand(100, len(lbp_hist))  # Replace with actual feature vectors
+labels = np.random.choice(labels, size=(100,))
+
+# Split data into training and testing sets
+(trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.25, random_state=42)
+
+# Encode the labels as integers
+le = LabelEncoder()
+trainY = le.fit_transform(trainY)
+testY = le.transform(testY)
+
+# Train a Support Vector Machine (SVM) classifier
+model = SVC(kernel="linear", C=1.0, random_state=42)
+model.fit(trainX, trainY)
+
+# Evaluate the classifier
+predictions = model.predict(testX)
+print(classification_report(testY, predictions, target_names=le.classes_))
+
+# Save the original image for visualization
+output_image_path = r"C:\Users\poornima\Downloads\original_image.jpg"
+cv2.imwrite(output_image_path, image)
+
+print(f"Original Image saved as: {output_image_path}")
