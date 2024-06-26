@@ -1,0 +1,39 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load the noisy image
+img_noisy = cv2.imread(r"C:\Users\poornima\Downloads\im.jpeg")
+
+# Convert to grayscale
+gray_noisy = cv2.cvtColor(img_noisy, cv2.COLOR_BGR2GRAY)
+
+# Denoising using Gaussian filtering
+gray_denoised_gaussian = cv2.GaussianBlur(gray_noisy, (5, 5), 0)
+
+# Denoising using bilateral filtering
+gray_denoised_bilateral = cv2.bilateralFilter(gray_noisy, 5, 50, 50)
+
+# Denoising using non-local means denoising
+gray_denoised_nlm = cv2.fastNlMeansDenoising(gray_noisy, None, 10, 7, 21)
+
+# Display the original and denoised images
+plt.figure(figsize=(12, 6))
+
+plt.subplot(1, 4, 1)
+plt.imshow(gray_noisy, cmap="gray")
+plt.title("Noisy Image")
+
+plt.subplot(1, 4, 2)
+plt.imshow(gray_denoised_gaussian, cmap="gray")
+plt.title("Gaussian Filtering")
+
+plt.subplot(1, 4, 3)
+plt.imshow(gray_denoised_bilateral, cmap="gray")
+plt.title("Bilateral Filtering")
+
+plt.subplot(1, 4, 4)
+plt.imshow(gray_denoised_nlm, cmap="gray")
+plt.title("Non-Local Means Denoising")
+
+plt.show()
