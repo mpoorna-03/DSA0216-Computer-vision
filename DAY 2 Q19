@@ -1,11 +1,10 @@
-
 import cv2
 import numpy as np
 from sklearn.decomposition import PCA
 from matplotlib import pyplot as plt
 
 # Load the image
-image = cv2.imread(r"C:\Users\poornima\Downloads\im.jpeg" (169).png", cv2.IMREAD_GRAYSCALE)
+image = cv2.imread(r"C:\Users\poornima\Downloads\im.jpeg", cv2.IMREAD_GRAYSCALE)
 
 # Reshape the image to a 2D array of pixels
 original_shape = image.shape
